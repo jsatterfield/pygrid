@@ -89,8 +89,9 @@ class PyGrid(object):
             # See https://developer.gnome.org/gtk3/stable/gtk3-Keyboard-Accelerators.html#gtk-accelerator-parse
             keysym, modmask = Gtk.accelerator_parse(config['keys']['accelerator'] + key)
             keycode = self.display.keysym_to_keycode(keysym)
+            mods = int(modmask)
 
-            self.keys[keycode] = command
+            self.keys[str(keycode) + str(mods)] = command
             self.root.grab_key(keycode, modmask, 1, X.GrabModeAsync, X.GrabModeAsync)
 
     def _check_event(self, source, condition, handle=None):
@@ -98,8 +99,9 @@ class PyGrid(object):
         handle = handle or self.root.display
         for _ in range(0, handle.pending_events()):
             event = handle.next_event()
-            if event.type == X.KeyPress:
-                command = self.keys[event.detail]
+            if event.type == X.KeyPress and str(str(event.detail) +
+                                                str(event.state)) in self.keys:
+                command = self.keys[str(event.detail) + str(event.state)]
                 self._handle_event(command)
         return True
 
